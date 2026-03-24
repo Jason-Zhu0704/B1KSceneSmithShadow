@@ -1,0 +1,30 @@
+# Rate-limited config for no-GPU continuous runs.
+# Goal: reduce API request frequency and finish floor_plan stage more reliably
+# under proxy rate limits.
+
+floor_plan_agent:
+  session_memory:
+    enabled: false
+    enable_summarization: false
+  agents:
+    planner_agent:
+      max_turns: 30
+    designer_agent:
+      max_turns: 40
+    critic_agent:
+      max_turns: 12
+  max_critique_rounds: 0
+  api_timeout:
+    connect: 30.0
+    read: 180.0
+    write: 180.0
+    pool: 180.0
+  openai:
+    reasoning_effort:
+      planner: "low"
+      designer: "low"
+      critic: "low"
+    verbosity:
+      planner: "low"
+      designer: "low"
+      critic: "low"
