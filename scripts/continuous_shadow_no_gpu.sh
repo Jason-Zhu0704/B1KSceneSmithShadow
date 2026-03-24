@@ -9,7 +9,7 @@ CONTROL_STOP_FILE="${ROOT}/.stop_continuous_no_gpu"
 SUMMARY_CSV="${LOG_DIR}/continuous_no_gpu_summary.csv"
 LOOP_LOG="${LOG_DIR}/continuous_no_gpu_loop.log"
 SLEEP_BETWEEN="${SLEEP_BETWEEN:-10}"
-TIMEOUT_SEC="${TIMEOUT_SEC:-600}"
+TIMEOUT_SEC="${TIMEOUT_SEC:-1200}"
 HEARTBEAT_SEC="${HEARTBEAT_SEC:-30}"
 
 mkdir -p "${RUNS_DIR}" "${LOG_DIR}"
@@ -28,8 +28,6 @@ fi
 
 PROMPTS=(
   "A compact bedroom with one bed and one nightstand."
-  "A small living room with one sofa and one coffee table."
-  "A tiny study room with one desk and one chair."
 )
 
 echo "=== continuous no-gpu loop started at $(date '+%F %T %Z') ===" >> "${LOOP_LOG}"
