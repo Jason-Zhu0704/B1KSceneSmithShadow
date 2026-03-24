@@ -11,10 +11,12 @@ LOOP_LOG="${LOG_DIR}/continuous_no_gpu_loop.log"
 SLEEP_BETWEEN="${SLEEP_BETWEEN:-10}"
 TIMEOUT_SEC="${TIMEOUT_SEC:-1200}"
 HEARTBEAT_SEC="${HEARTBEAT_SEC:-30}"
-API_MAX_RETRIES="${API_MAX_RETRIES:-3}"
+API_MAX_RETRIES="${API_MAX_RETRIES:-1}"
 RATE_LIMIT_BASE_SLEEP="${RATE_LIMIT_BASE_SLEEP:-20}"
 RATE_LIMIT_MAX_SLEEP="${RATE_LIMIT_MAX_SLEEP:-300}"
 RATE_LIMIT_JITTER_MAX="${RATE_LIMIT_JITTER_MAX:-15}"
+RATE_LIMIT_FAILFAST_429="${RATE_LIMIT_FAILFAST_429:-6}"
+RATE_LIMIT_FAILFAST_AFTER_SEC="${RATE_LIMIT_FAILFAST_AFTER_SEC:-90}"
 
 mkdir -p "${RUNS_DIR}" "${LOG_DIR}"
 rm -f "${CONTROL_STOP_FILE}"
@@ -38,6 +40,7 @@ echo "=== continuous no-gpu loop started at $(date '+%F %T %Z') ===" >> "${LOOP_
 echo "summary_csv=${SUMMARY_CSV}" >> "${LOOP_LOG}"
 echo "api_max_retries=${API_MAX_RETRIES}" >> "${LOOP_LOG}"
 echo "rate_limit_backoff=base:${RATE_LIMIT_BASE_SLEEP}s max:${RATE_LIMIT_MAX_SLEEP}s jitter<=${RATE_LIMIT_JITTER_MAX}s" >> "${LOOP_LOG}"
+echo "rate_limit_failfast=429>=${RATE_LIMIT_FAILFAST_429} after ${RATE_LIMIT_FAILFAST_AFTER_SEC}s" >> "${LOOP_LOG}"
 
 iter=0
 rate_limit_streak=0
@@ -95,6 +98,14 @@ while true; do
     fi
     if [[ -f "${run_dir}/scene_000/house_layout.json" ]]; then
       layout_flag=1
+    fi
+    too_many_429=0
+    if [[ -f "${run_dir}/scene_000/scene.log" ]]; then
+      too_many_429="$(grep -c "429 Too Many Requests" "${run_dir}/scene_000/scene.log" || true)"
+      if (( running_sec >= RATE_LIMIT_FAILFAST_AFTER_SEC )) && (( too_many_429 >= RATE_LIMIT_FAILFAST_429 )); then
+        echo "$(date '+%F %T') fail-fast: 429_count=${too_many_429} running=${running_sec}s -> terminate iter=${iter}" >> "${LOOP_LOG}" || true
+        kill "${job_pid}" >/dev/null 2>&1 || true
+      fi
     fi
     echo "$(date '+%F %T') heartbeat iter=${iter} running=${running_sec}s cfg:${cfg_flag} log:${log_flag} layout:${layout_flag}" >> "${LOOP_LOG}" || true
     sleep "${HEARTBEAT_SEC}"

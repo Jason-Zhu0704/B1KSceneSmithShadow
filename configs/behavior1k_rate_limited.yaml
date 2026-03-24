@@ -6,13 +6,17 @@ floor_plan_agent:
   session_memory:
     enabled: false
     enable_summarization: false
+  materials:
+    use_retrieval_server: false
+    default_wall_material: "Plaster001_1K-JPG"
+    default_floor_material: "Wood094_1K-JPG"
   agents:
     planner_agent:
-      max_turns: 30
-    designer_agent:
-      max_turns: 40
-    critic_agent:
       max_turns: 12
+    designer_agent:
+      max_turns: 16
+    critic_agent:
+      max_turns: 4
   max_critique_rounds: 0
   api_timeout:
     connect: 30.0
@@ -28,3 +32,39 @@ floor_plan_agent:
       planner: "low"
       designer: "low"
       critic: "low"
+
+furniture_agent:
+  asset_manager:
+    router:
+      strategies:
+        articulated:
+          enabled: false
+        thin_covering:
+          enabled: false
+
+wall_agent:
+  asset_manager:
+    router:
+      strategies:
+        articulated:
+          enabled: false
+        thin_covering:
+          enabled: false
+
+ceiling_agent:
+  asset_manager:
+    router:
+      strategies:
+        articulated:
+          enabled: false
+        thin_covering:
+          enabled: false
+
+manipuland_agent:
+  asset_manager:
+    router:
+      strategies:
+        articulated:
+          enabled: false
+        thin_covering:
+          enabled: false
