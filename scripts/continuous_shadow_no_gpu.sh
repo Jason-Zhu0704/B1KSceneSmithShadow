@@ -4,6 +4,7 @@ set -o pipefail
 ROOT="/root/B1KSceneSmithShadow"
 RUNS_DIR="${ROOT}/runs"
 LOG_DIR="${ROOT}/logs"
+LOCK_FILE="/tmp/b1k_shadow_no_gpu.lock"
 CONTROL_STOP_FILE="${ROOT}/.stop_continuous_no_gpu"
 SUMMARY_CSV="${LOG_DIR}/continuous_no_gpu_summary.csv"
 LOOP_LOG="${LOG_DIR}/continuous_no_gpu_loop.log"
@@ -13,6 +14,13 @@ HEARTBEAT_SEC="${HEARTBEAT_SEC:-30}"
 
 mkdir -p "${RUNS_DIR}" "${LOG_DIR}"
 rm -f "${CONTROL_STOP_FILE}"
+
+# Single-instance lock to prevent multiple loops stepping on each other.
+exec 9>"${LOCK_FILE}"
+if ! flock -n 9; then
+  echo "$(date '+%F %T') another continuous loop instance is already running" >> "${LOOP_LOG}"
+  exit 0
+fi
 
 if [[ ! -f "${SUMMARY_CSV}" ]]; then
   echo "iter,start_ts,end_ts,elapsed_sec,status,prompt,run_dir,resolved_config,scene_log,house_layout,shadow_manifest,error_lines" > "${SUMMARY_CSV}"
@@ -47,9 +55,15 @@ while true; do
   echo "$(date '+%F %T') prompt=${prompt}" >> "${LOOP_LOG}"
 
   # Extra cleanup to avoid stale port conflicts across iterations.
+  pkill -f '/root/SmithPlusOmnigibson/scripts/run.py --prompt' >/dev/null 2>&1 || true
+  pkill -f '/data/scenesmith/scenesmith/agent_utils/blender/standalone_server.py' >/dev/null 2>&1 || true
+  pkill -f '/root/SmithPlusOmnigibson/src/optimized_server.py --host 127.0.0.1 --port 7006' >/dev/null 2>&1 || true
+  pkill -f 'articulated_retrieval_server' >/dev/null 2>&1 || true
+  pkill -f 'materials_retrieval_server' >/dev/null 2>&1 || true
   for p in 7006 7007 7008; do
     fuser -k "${p}/tcp" >/dev/null 2>&1 || true
   done
+  sleep 2
 
   timeout "${TIMEOUT_SEC}s" env B1K_RETRIEVAL_BACKEND=lexical bash "${ROOT}/scripts/run_shadow_main.sh" \
     "${prompt}" \
