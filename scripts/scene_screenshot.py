@@ -1,0 +1,1 @@
+/root/SmithPlusOmnigibson/scene_screenshot.py

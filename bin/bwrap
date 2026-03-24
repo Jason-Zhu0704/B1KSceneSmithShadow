@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Shadow shim: ignore bubblewrap isolation flags and execute command after '--'.
+for i in "$@"; do
+  if [[ "$i" == "--" ]]; then
+    shift
+    exec "$@"
+  fi
+  shift
+done
+# Fallback if '--' not found.
+exec "$@"

@@ -1,0 +1,6 @@
+{
+  "count": 7670,
+  "dim": 1024,
+  "source_npz": "/root/sgpromax/asset_embeddings.npz",
+  "descriptions_jsonl": "/root/sgpromax/patch-of-behavior-1k/asset_descriptions.jsonl"
+}

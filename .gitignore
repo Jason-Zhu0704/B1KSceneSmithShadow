@@ -1,0 +1,27 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local env
+.env
+.env.local
+
+# Runtime outputs
+runs/
+logs/
+*.log
+
+# Large generated data
+data/*.npz
+data/*.npy
+data/*.pt
+data/*.bin
+
+# Keep small metadata/manifests by default
+!data/*.meta.json
+!data/*.shadow_manifest.json
+
+# External symlinks (recreated by scripts/link_sources.sh)
+b1k_drake_assets
+omnigibson_dataset
+patch-of-behavior-1k
